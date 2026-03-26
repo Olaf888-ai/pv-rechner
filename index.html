@@ -392,6 +392,25 @@
   .wp-inputs { display: none; }
   .wp-inputs.visible { display: block; }
 
+
+  .section-toggle-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    user-select: none;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 28px;
+  }
+  .section-toggle-bar:hover { border-color: var(--border2); }
+  .section-toggle-content { display: none; }
+  .section-toggle-content.visible { display: block; }
   /* Heizart-Buttons */
   .wp-heizart-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-top: 4px; }
   @media(max-width:560px){ .wp-heizart-grid { grid-template-columns: repeat(2,1fr); } }
@@ -911,6 +930,17 @@
   </div>
 
   <!-- CHART -->
+  <button class="section-toggle-bar" onclick="toggleSection('sec_kostenverlauf', 'sw_kostenverlauf', 'sk_kostenverlauf')">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:24px;">📈</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);">Kostenverlauf im Jahresvergleich</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Jährliche Kosten Ohne PV vs. Mit PV über die Laufzeit</div>
+      </div>
+    </div>
+    <div class="wp-toggle-switch" id="sw_kostenverlauf"><div class="wp-toggle-knob" id="sk_kostenverlauf"></div></div>
+  </button>
+  <div class="section-toggle-content" id="sec_kostenverlauf">
   <div class="chart-card">
     <div class="section-label" style="margin-bottom:20px">Kostenverlauf im Jahresvergleich</div>
     <div class="chart-wrap">
@@ -938,8 +968,20 @@
       <div class="bar-track"><div class="bar-fill bf-grn" id="bb4" style="width:0%"></div></div>
     </div>
   </div>
+  </div>
 
   <!-- KONTEXT-RECHNER -->
+  <button class="section-toggle-bar" onclick="toggleSection('sec_kontext', 'sw_kontext', 'sk_kontext')">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:24px;">🛒</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);">Was könnten Sie mit dem Vorteil kaufen?</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Urlaube, Autos, Tankfüllungen und mehr</div>
+      </div>
+    </div>
+    <div class="wp-toggle-switch" id="sw_kontext"><div class="wp-toggle-knob" id="sk_kontext"></div></div>
+  </button>
+  <div class="section-toggle-content" id="sec_kontext">
   <div class="kontext-card">
     <div class="section-label">Was könnten Sie mit dem Vorteil kaufen?</div>
     <p style="font-size:13px;color:var(--muted2);margin-bottom:4px;">Der Gesamtvorteil von <strong id="kontext_vorteil" style="color:var(--gold)">–</strong> über <span class="dyn-years">20</span> Jahre entspricht… <span id="kontext_suffix"></span></p>
@@ -1058,9 +1100,21 @@
   </div>
 
   <!-- JAHRESVERLAUF -->
+  <button class="section-toggle-bar" onclick="toggleSection('sec_jahresverlauf', 'sw_jahresverlauf', 'sk_jahresverlauf')">
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div style="font-size:24px;">📊</div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--text);">Kumulierte Kosten im Jahresverlauf</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Gesamtkosten kumuliert über die gesamte Laufzeit</div>
+      </div>
+    </div>
+    <div class="wp-toggle-switch" id="sw_jahresverlauf"><div class="wp-toggle-knob" id="sk_jahresverlauf"></div></div>
+  </button>
+  <div class="section-toggle-content" id="sec_jahresverlauf">
   <div class="tl-card">
     <div class="tl-intro">Kumulierte Kosten im Jahresverlauf · <span class="dyn-years">20</span> Jahre</div>
     <div id="tbl"></div>
+  </div>
   </div>
 
   <div class="hint">
@@ -1196,6 +1250,20 @@ function calcEVHaushalt(pv_production, consumption) {
   return Math.min(pv_production * 0.70, consumption * 0.90); // Standard: 70%/90%
 }
 
+
+function toggleSection(sectionId, switchId, knobId) {
+  var sec = document.getElementById(sectionId);
+  var sw = document.getElementById(switchId);
+  var kn = document.getElementById(knobId);
+  var isOn = sec.classList.contains('visible');
+  if (isOn) {
+    sec.classList.remove('visible');
+    sw.classList.remove('on');
+  } else {
+    sec.classList.add('visible');
+    sw.classList.add('on');
+  }
+}
 var wpActive      = false;
 var _evQuote      = 40;  // PV-Eigenverbrauch WP Slider
 var bar1_val_global = 0;

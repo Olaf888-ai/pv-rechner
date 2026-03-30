@@ -1338,13 +1338,13 @@ var _monRegions=[
   {name:'Hannover',total:80,free:6,reduced:0}
 ];
 var _monOpen=false;
-(function(){
+window.addEventListener('DOMContentLoaded',function(){
   var tf=_monRegions.reduce(function(a,r){return a+r.free;},0);
   var ts=_monRegions.reduce(function(a,r){return a+r.total;},0);
   var p=Math.round((tf/ts)*100);
   var b=document.getElementById('mon_badge');
   if(b) b.textContent='Nur noch '+p+'% frei';
-})();
+});
 var _monTimer=null;
 
 function toggleMontage(){

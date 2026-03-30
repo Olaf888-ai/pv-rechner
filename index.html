@@ -459,6 +459,12 @@
   .hint strong{color:var(--muted2);}
 
   @keyframes tickerPulse { 0%,100%{opacity:.3;width:40px} 50%{opacity:1;width:120px} }
+
+  @keyframes mon_flash{0%{background:#F5F5F3;border-color:transparent;}25%{background:#FDECEA;border-color:#E74C3C;}75%{background:#FDECEA;border-color:#E74C3C;}100%{background:#F5F5F3;border-color:transparent;}}
+  .mon-rc{background:#F5F5F3;border-radius:10px;padding:12px;border:1.5px solid transparent;}
+  .mon-rc.flash{animation:mon_flash 0.9s ease forwards;}
+  @keyframes mon_badge_pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
+  #mon_badge{animation:mon_badge_pulse 2s infinite;}
   @media print{ body{background:#fff;color:#000;} .container{padding:20px;}}
 </style>
 </head>
@@ -474,6 +480,45 @@
 </nav>
 
 <div class="container">
+
+<div style="margin-bottom:28px;" id="mon_wrap">
+  <button onclick="toggleMontage()" style="background:#1A1A1A;color:#fff;border:none;border-radius:16px;padding:16px 22px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:12px;width:100%;text-align:left;">
+    <span style="font-size:20px;">🏗</span>
+    <div>
+      <div>Montagekapazität</div>
+      <div style="font-size:11px;color:#888;font-weight:400;margin-top:2px;">8 Regionen · aktuell verfügbar</div>
+    </div>
+    <span id="mon_badge" style="background:#C0392B;color:#fff;font-size:11px;font-weight:700;border-radius:100px;padding:3px 12px;margin-left:auto;">Nur noch 8% frei</span>
+  </button>
+  <div id="mon_panel" style="display:none;background:#fff;border:1px solid #E0E0E0;border-radius:16px;margin-top:10px;overflow:hidden;">
+    <div style="background:#1A1A1A;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="color:#F0E15A;font-size:13px;font-weight:800;letter-spacing:1px;">🏗 MONTAGEKAPAZITÄT</div>
+        <div style="color:#666;font-size:11px;margin-top:2px;">Freie Montageslots je Region</div>
+      </div>
+      <div style="text-align:right;">
+        <div id="mon_pct_big" style="font-size:28px;font-weight:900;color:#C0392B;line-height:1;">8%</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">noch verfügbar</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 16px;border-bottom:1px solid #F0F0F0;">
+      <div style="background:#F5F5F3;border-radius:10px;padding:10px;text-align:center;">
+        <div id="mon_sum_total" style="font-size:18px;font-weight:900;color:#1A1A1A;">770</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">SLOTS GESAMT</div>
+      </div>
+      <div style="background:#F5F5F3;border-radius:10px;padding:10px;text-align:center;">
+        <div id="mon_sum_free" style="font-size:18px;font-weight:900;color:#C0392B;">58</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">NOCH FREI</div>
+      </div>
+      <div style="background:#F5F5F3;border-radius:10px;padding:10px;text-align:center;">
+        <div id="mon_sum_pct" style="font-size:18px;font-weight:900;color:#C0392B;">8%</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">VERFÜGBAR</div>
+      </div>
+    </div>
+    <div id="mon_grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 16px;"></div>
+  </div>
+</div>
+
 
   <!-- KUNDENNAME -->
   <div class="customer-banner">
@@ -1265,6 +1310,75 @@ function toggleSection(sectionId, switchId, knobId) {
     sw.classList.add('on');
   }
 }
+
+var _monRegions=[
+  {name:'OWL',total:100,free:8,reduced:0},
+  {name:'Dortmund / Münster',total:80,free:7,reduced:0},
+  {name:'Köln / Aachen',total:120,free:9,reduced:0},
+  {name:'Baden-Württemberg',total:100,free:6,reduced:0},
+  {name:'Osnabrück',total:80,free:10,reduced:0},
+  {name:'Bremen / Hamburg',total:90,free:7,reduced:0},
+  {name:'Berlin',total:120,free:5,reduced:0},
+  {name:'Hannover',total:80,free:6,reduced:0}
+];
+var _monOpen=false;
+var _monTimer=null;
+
+function toggleMontage(){
+  _monOpen=!_monOpen;
+  document.getElementById('mon_panel').style.display=_monOpen?'block':'none';
+  if(_monOpen){monRender();if(!_monTimer)_monTimer=setInterval(monReduce,30000);}
+}
+
+function monRender(){
+  var g=document.getElementById('mon_grid');
+  g.innerHTML='';
+  _monRegions.forEach(function(r,i){
+    var pct=Math.round((r.free/r.total)*100);
+    var ok=pct>10;
+    var fill=Math.round((1-r.free/r.total)*100);
+    var d=document.createElement('div');
+    d.className='mon-rc';
+    d.id='mon_rc_'+i;
+    d.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">'+r.name+'</div>'+
+      '<div style="background:var(--card2);border-radius:3px;height:5px;margin-bottom:6px;">'+
+        '<div style="height:5px;border-radius:3px;background:'+(ok?'#1D8349':'#C0392B')+';width:'+fill+'%;transition:width 0.8s;"></div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;">'+
+        '<span style="font-size:10px;color:var(--muted);">'+r.total+' Slots</span>'+
+        '<div style="text-align:right;">'+
+          '<span style="font-size:15px;font-weight:900;color:'+(ok?'#1D8349':'#C0392B')+';">'+r.free+'</span>'+
+          '<div style="font-size:10px;color:var(--muted);">noch frei</div>'+
+        '</div>'+
+      '</div>';
+    g.appendChild(d);
+  });
+  monUpdateSummary();
+}
+
+function monUpdateSummary(){
+  var totalFree=_monRegions.reduce(function(a,r){return a+r.free;},0);
+  var totalSlots=_monRegions.reduce(function(a,r){return a+r.total;},0);
+  var pct=Math.round((totalFree/totalSlots)*100);
+  document.getElementById('mon_sum_total').textContent=totalSlots;
+  document.getElementById('mon_sum_free').textContent=totalFree;
+  document.getElementById('mon_sum_pct').textContent=pct+'%';
+  document.getElementById('mon_pct_big').textContent=pct+'%';
+  document.getElementById('mon_badge').textContent='Nur noch '+pct+'% frei';
+}
+
+function monReduce(){
+  var eligible=_monRegions.map(function(r,i){return {i:i,r:r};})
+    .filter(function(x){return x.r.free>1&&x.r.reduced<2;});
+  if(!eligible.length){clearInterval(_monTimer);_monTimer=null;return;}
+  var pick=eligible[Math.floor(Math.random()*eligible.length)];
+  _monRegions[pick.i].free--;
+  _monRegions[pick.i].reduced++;
+  monRender();
+  var card=document.getElementById('mon_rc_'+pick.i);
+  if(card){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
+}
+
 var wpActive      = false;
 var _evQuote      = 40;  // PV-Eigenverbrauch WP Slider
 var bar1_val_global = 0;

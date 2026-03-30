@@ -465,6 +465,18 @@
   .mon-rc.flash{animation:mon_flash 0.9s ease forwards;}
   @keyframes mon_badge_pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
   #mon_badge{animation:mon_badge_pulse 2s infinite;}
+
+  @keyframes mon_flash{0%{background:#F5F5F3;border-color:transparent;}25%{background:#FDECEA;border-color:#E74C3C;}75%{background:#FDECEA;border-color:#E74C3C;}100%{background:#F5F5F3;border-color:transparent;}}
+  @keyframes numPop{0%{transform:scale(1);}30%{transform:scale(2.2);}100%{transform:scale(1);}}
+  .mon-rc{border-radius:10px;padding:12px;border:2px solid transparent;transition:background 1.5s ease,border-color 1.5s ease;}
+  .mon-rc.red{background:#F5F5F3;}
+  .mon-rc.green{background:#EAFAF1;border-color:#A9DFBF;}
+  .mon-rc.orange{background:#FEF5E7;border-color:#FAD7A0;}
+  .mon-rc.hit{background:#FDECEA !important;border-color:#E74C3C !important;transition:background 0.1s,border-color 0.1s;}
+  .mon-rc-free{display:inline-block;}
+  .mon-rc-free.popping{animation:numPop 0.8s ease forwards;}
+  @keyframes mon_badge_pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
+  #mon_badge{animation:mon_badge_pulse 2s infinite;}
   @media print{ body{background:#fff;color:#000;} .container{padding:20px;}}
 </style>
 </head>
@@ -480,6 +492,46 @@
 </nav>
 
 <div class="container">
+
+  <!-- MONTAGEKAPAZITÄT -->
+  <div style="margin-bottom:28px;">
+    <button onclick="toggleMontage()" style="background:#1A1A1A;color:#fff;border:none;border-radius:16px;padding:16px 22px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:12px;width:100%;text-align:left;">
+      <span style="font-size:20px;">🏗</span>
+      <div>
+        <div>Montagekapazität</div>
+        <div style="font-size:11px;color:#888;font-weight:400;margin-top:2px;">10 Regionen · aktuell verfügbar</div>
+      </div>
+      <span id="mon_badge" style="background:#C0392B;color:#fff;font-size:11px;font-weight:700;border-radius:100px;padding:3px 12px;margin-left:auto;">Nur noch 8% frei</span>
+    </button>
+    <div id="mon_panel" style="display:none;background:#fff;border:1px solid #E0E0E0;border-radius:16px;margin-top:10px;overflow:hidden;">
+      <div style="background:#1A1A1A;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="color:#F0E15A;font-size:13px;font-weight:800;letter-spacing:1px;">🏗 MONTAGEKAPAZITÄT</div>
+          <div style="color:#666;font-size:11px;margin-top:2px;">Freie Montageslots je Region</div>
+        </div>
+        <div style="text-align:right;">
+          <div id="mon_pct_big" style="font-size:28px;font-weight:900;color:#C0392B;line-height:1;">8%</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">noch verfügbar</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:14px 16px;border-bottom:1px solid #F0F0F0;">
+        <div style="background:#F5F5F3;border-radius:10px;padding:10px;text-align:center;">
+          <div id="mon_sum_total" style="font-size:18px;font-weight:900;color:#1A1A1A;">970</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">SLOTS GESAMT</div>
+        </div>
+        <div style="background:#F5F5F3;border-radius:10px;padding:10px;text-align:center;">
+          <div id="mon_sum_free" style="font-size:18px;font-weight:900;color:#C0392B;">72</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">NOCH FREI</div>
+        </div>
+        <div style="background:#F5F5F3;border-radius:10px;padding:10px;text-align:center;">
+          <div id="mon_sum_pct" style="font-size:18px;font-weight:900;color:#C0392B;">8%</div>
+          <div style="font-size:10px;color:#888;margin-top:2px;">VERFÜGBAR</div>
+        </div>
+      </div>
+      <div id="mon_grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px 16px;"></div>
+    </div>
+  </div>
+
 
 <div style="margin-bottom:28px;" id="mon_wrap">
   <button onclick="toggleMontage()" style="background:#1A1A1A;color:#fff;border:none;border-radius:16px;padding:16px 22px;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:12px;width:100%;text-align:left;">
@@ -1377,6 +1429,109 @@ function monReduce(){
   monRender();
   var card=document.getElementById('mon_rc_'+pick.i);
   if(card){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
+}
+
+
+var _monRegions=[
+  {name:'OWL',             total:100, free:8,  reduced:0, color:'red'},
+  {name:'Köln / Aachen',   total:120, free:9,  reduced:0, color:'red'},
+  {name:'Dortmund / Münster', total:80, free:7, reduced:0, color:'red'},
+  {name:'Frankfurt am Main', total:100, free:28, reduced:0, color:'green'},
+  {name:'Baden-Württemberg', total:100, free:6, reduced:0, color:'red'},
+  {name:'Brandenburg',     total:80,  free:22, reduced:0, color:'orange'},
+  {name:'Bremen / Hamburg', total:90, free:7,  reduced:0, color:'red'},
+  {name:'Osnabrück',       total:80,  free:10, reduced:0, color:'red'},
+  {name:'Berlin',          total:120, free:5,  reduced:0, color:'red'},
+  {name:'Hannover',        total:80,  free:6,  reduced:0, color:'red'}
+];
+var _monOpen=false;
+var _monPhase=0;
+var _monTimer=null;
+
+function toggleMontage(){
+  _monOpen=!_monOpen;
+  document.getElementById('mon_panel').style.display=_monOpen?'block':'none';
+  if(_monOpen){
+    monRender();
+    if(!_monTimer) _monScheduleNext();
+  } else {
+    if(_monTimer){clearTimeout(_monTimer);_monTimer=null;}
+  }
+}
+
+function _monScheduleNext(){
+  var delay = _monPhase < 2 ? 10000 : 30000;
+  _monTimer = setTimeout(function(){
+    monReduce();
+    _monPhase++;
+    _monScheduleNext();
+  }, delay);
+}
+
+function monRender(){
+  var g=document.getElementById('mon_grid');
+  g.innerHTML='';
+  var barColors={red:'#C0392B',green:'#1D8349',orange:'#E67E22'};
+  var freeColors={red:'#C0392B',green:'#1D8349',orange:'#E67E22'};
+  _monRegions.forEach(function(r,i){
+    var fill=Math.round((1-r.free/r.total)*100);
+    var d=document.createElement('div');
+    d.className='mon-rc '+r.color;
+    d.id='mon_rc_'+i;
+    d.innerHTML=
+      '<div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px;">'+r.name+'</div>'+
+      '<div style="background:var(--card2);border-radius:3px;height:5px;margin-bottom:8px;">'+
+        '<div id="mon_bar_'+i+'" style="height:5px;border-radius:3px;background:'+barColors[r.color]+';width:'+fill+'%;transition:width 1s;"></div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;">'+
+        '<span style="font-size:10px;color:var(--muted);">'+r.total+' Slots</span>'+
+        '<div style="text-align:right;">'+
+          '<span class="mon-rc-free" id="mon_free_'+i+'" style="font-size:15px;font-weight:900;color:'+freeColors[r.color]+';">'+r.free+'</span>'+
+          '<div style="font-size:10px;color:var(--muted);">noch frei</div>'+
+        '</div>'+
+      '</div>';
+    g.appendChild(d);
+  });
+  monUpdateSummary();
+}
+
+function monUpdateSummary(){
+  var tf=_monRegions.reduce(function(a,r){return a+r.free;},0);
+  var ts=_monRegions.reduce(function(a,r){return a+r.total;},0);
+  var p=Math.round((tf/ts)*100);
+  document.getElementById('mon_sum_total').textContent=ts;
+  document.getElementById('mon_sum_free').textContent=tf;
+  document.getElementById('mon_sum_pct').textContent=p+'%';
+  document.getElementById('mon_pct_big').textContent=p+'%';
+  document.getElementById('mon_badge').textContent='Nur noch '+p+'% frei';
+}
+
+function monReduce(){
+  var eligible=_monRegions.map(function(r,i){return{i:i,r:r};})
+    .filter(function(x){return x.r.free>1&&x.r.reduced<2;});
+  if(!eligible.length)return;
+  var pick=eligible[Math.floor(Math.random()*eligible.length)];
+  var i=pick.i;
+  _monRegions[i].free--;
+  _monRegions[i].reduced++;
+  var card=document.getElementById('mon_rc_'+i);
+  if(card){
+    card.classList.add('hit');
+    setTimeout(function(){card.classList.remove('hit');},3000);
+  }
+  var freeEl=document.getElementById('mon_free_'+i);
+  if(freeEl){
+    freeEl.classList.remove('popping');
+    void freeEl.offsetWidth;
+    freeEl.classList.add('popping');
+    setTimeout(function(){
+      freeEl.textContent=_monRegions[i].free;
+      var bar=document.getElementById('mon_bar_'+i);
+      if(bar) bar.style.width=Math.round((1-_monRegions[i].free/_monRegions[i].total)*100)+'%';
+      monUpdateSummary();
+      freeEl.classList.remove('popping');
+    },400);
+  }
 }
 
 var wpActive      = false;
